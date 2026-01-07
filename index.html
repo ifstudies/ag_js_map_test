@@ -34,14 +34,15 @@
         margin: 0;
       }
       .leaflet-container {
-        height: 400px;
+        height: 600px;
         /* Commenting out the following line allowed my
         map to take up the full width of the page by default. 
         Based in part on https://stackoverflow.com/a/74628367/13097194*/
         /* width: 800px; */  
-        max-width: 80%;
+        max-width: 90%;
         max-height: 100%;
       }
+
     </style>
 
 
@@ -163,15 +164,17 @@ var agStateData = {
 ]};
 
 // Rendering percentile-based colors:
+// (These colors were sourced from:
+// /home/ifskjb3/Documents/ifsdocs/Scripts/chart_examples/ifs_dp_wgray_8_color.png )
 function getColor(d) {
-    return d >= 87.5 ? '#800026' :
-           d >= 75  ? '#BD0026' :
-           d >= 62.5  ? '#E31A1C' :
-           d >= 50  ? '#FC4E2A' :
-           d >= 37.5   ? '#FD8D3C' :
-           d >= 25   ? '#FEB24C' :
-           d >= 12.5   ? '#FED976' :
-                      '#FFEDA0';
+    return d >= 87.5 ? '#FFB77C' :
+           d >= 75  ? '#E6B288' :
+           d >= 62.5  ? '#CCAD94' :
+           d >= 50  ? '#B3A8A0' :
+           d >= 37.5   ? '#92919F' :
+           d >= 25   ? '#6B6892' :
+           d >= 12.5   ? '#433F85' :
+                      '#1C1678';
 }
 
 function style(feature) // The feature variable here appears to be
@@ -199,7 +202,7 @@ return {
 }
 
 // Performing an initial render of the map:
-map = L.map('map').setView([37.5, -98.5], 4);
+map = L.map('map').setView([37.5, -98.5], 5);
 L.maplibreGL({
 style: 'https://tiles.openfreemap.org/styles/bright',
 }).addTo(map);
