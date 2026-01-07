@@ -1,0 +1,138 @@
+<!doctype html>
+<!-- Site for Anxious Generation maps that combines select() and iframe() options-->
+<!-- Based on template from: https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Structuring_content/Structuring_documents -->
+<!-- Also incorporates content from https://getbootstrap.com/docs/5.3/getting-started/introduction/ -->
+
+<html lang="en-US">
+  <head>
+   <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" 
+    rel="stylesheet" 
+    integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" 
+    crossorigin="anonymous">
+    <title>Anxious Generation Maps</title>
+  </head>
+
+<!-- The following script info comes from:
+https://developer.mozilla.org/en-US/docs/Web/HTML/How_to/Add_JavaScript_to_your_web_page
+-->
+
+<body>
+    <div class="container-fluid">
+<div class = "row">
+  <div class = "col-md-auto">
+    <h3>Metrics by state</h3>
+  </div>
+</div>
+<div class = "row">
+  <div class = "col-md-auto">
+    <p><strong>Note: These graphs show <i>fictional</i> placeholder data.</strong><p>
+  </div>
+</div>
+
+<div class = "row">
+  <div class = "col-md-auto">
+    <label><b>Metric:</b>
+      </label>
+    </div>
+<!-- Select tag is based on https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/select-->
+ <!-- This page was also very helpful for linking <select> choices to our iframe's src value via JavaScript:
+ https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/change_event#select_element-->
+ <!-- The bootstrap-specific select code shown here was based on the example(s) at
+  https://getbootstrap.com/docs/5.3/forms/select/#default .-->
+ <div class = "col-md-auto">
+<select class="form-select" id="map-option" aria-label="Metric selection">
+  <option value="index">Index of authoritative parenting</option>  
+  <option value="pct_homeschooled">Share of 6-10 year olds homeschooled</option>
+  <option value="pct_who_spank">Share of parents who report at 
+least sometimes spanking 3-6 year olds</option>
+  <option value="pct_with_smartphones">Share of 14-year-olds who have smartphones</option>
+  <option value="average_hours">Average hours of unsupervised play 
+outside for children ages 8-14</option>
+</select>
+</div>
+
+  <div class = "col-md-auto">
+    <label><b>Color style:</b>
+    </label>
+    </div>
+  <div class = "col-md-auto">
+<select class="form-select" id="color-option" aria-label="Metric selection">
+  <option value="percentile">Percentile</option>  
+  <option value="linear">Linear</option>
+</select>
+</div>
+</div>
+
+<!-- The following code allows the iFrame to appear as a full-screen element. It's based on:
+https://getbootstrap.com/docs/5.3/helpers/ratio/#example 
+Note: 21x9 works quite well here. When 16x9 is used, the map starts out a bit low.-->
+<div class="ratio ratio-21x9"> 
+<iframe class="embed-responsive-item" id="mapiframe"  src = "maps/index_percentile.html" allowfullscreen></iframe>
+  </div>
+
+<!-- style='width: 100%; height:800px;' -->
+<!-- Based on: https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/iframe
+and https://stackoverflow.com/a/8642538/13097194 (which showed me that I needed to add 
+an ID component in order for this iframe to get linked to the following JavaScript
+A map was added to this source tag already, but it will get updated based on the user's
+response in the following dropdown. -->
+
+<!-- Updating the value of the iFrame's src variable (e.g. the map to display) based on 
+the values of our two dropdown menus:-->
+<!-- Note that this needs to be placed below the HTML code above in order for the Javascript to locate
+the components it needs from that code. -->
+<!-- I'm also using getElementById rather than queryselector() because the latter didn't work \
+ with ID names. -->
+<!-- The document.getElementByID line was based on:  https://stackoverflow.com/a/8642538/13097194 -->
+
+<script>
+const map_selectElement = document.getElementById("map-option");
+/* The following code is based on 
+https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/Variables */
+let map_string = "maps/index";
+
+/*Note: I found that specifying initial textContent values 
+for map_result and color_result was crucial for 
+getting maps to display correctly. */
+
+const color_selectElement = document.getElementById("color-option");
+let color_string = "_percentile.html";
+
+/* Updating the src value to respond to changes in the selection:
+(When a user changes an element, the following code will change
+map_string and/or color_string accordingly, then generate a new version
+of src that's based on the latest version of each of these values.
+*/
+
+map_selectElement.addEventListener("change", (event) => {
+  map_string = `maps/${event.target.value}`;
+document.getElementById("mapiframe").src = map_string + color_string;
+});
+
+color_selectElement.addEventListener("change", (event) => {
+  color_string = `_${event.target.value}.html`;
+document.getElementById("mapiframe").src = map_string + color_string;
+});
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" 
+integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" 
+crossorigin="anonymous"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" 
+integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" 
+crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js" 
+integrity="sha384-G/EV+4j2dNv+tEPo3++6LCgdCROaejBqfUeNjuKAiuXbjrxilcCdDz6ZAVfHWe1Y" 
+crossorigin="anonymous"></script>
+
+
+</div>
+  </body>
+</html>
