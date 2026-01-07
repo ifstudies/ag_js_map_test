@@ -1,4 +1,4 @@
-,State,average_hours,pct_with_smartphones,pct_who_spank,pct_homeschooled,index,average_hours_percentile,pct_with_smartphones_percentile,pct_who_spank_percentile,pct_homeschooled_percentile,index_percentile
+,State,average_hours,pct_with_smartphones,pct_who_spank,pct_homeschooled,ap_index,average_hours_percentile,pct_with_smartphones_percentile,pct_who_spank_percentile,pct_homeschooled_percentile,ap_index_percentile
 0,New Mexico,0.0400805274608386,59.2725823785073,32.9937630500672,32.8262331812341,2,17.647058823529413,56.86274509803921,35.294117647058826,25.49019607843137,10.784313725490197
 1,South Dakota,0.926644057688415,98.1408352720763,58.1579252836649,0.8367417099621599,10,47.05882352941176,100.0,66.66666666666666,3.9215686274509802,95.09803921568627
 2,California,2.58420137747134,15.990967188956102,11.5825916739529,11.2886973582604,5,66.66666666666666,15.686274509803921,15.686274509803921,9.803921568627452,43.13725490196079
