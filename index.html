@@ -1,7 +1,10 @@
 <!doctype html>
-<!-- Site for Anxious Generation maps that uses Leaflet to render user-specified maps-->
-<!-- Based on template from: https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Structuring_content/Structuring_documents -->
-<!-- Also incorporates content from https://getbootstrap.com/docs/5.3/getting-started/introduction/ -->
+<!-- Site for Anxious Generation maps that uses Leaflet to render user-specified maps
+Based on template from: https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Structuring_content/Structuring_documents 
+Also incorporates content from https://getbootstrap.com/docs/5.3/getting-started/introduction/ 
+Much of the choropleth-related code comes from: https://leafletjs.com/examples/choropleth/
+-->
+
 
 <html lang="en-US">
 
@@ -49,8 +52,26 @@
             /* width: 800px; */
             max-width: 90%;
             max-height: 100%;
-            background-color: rgba(255, 0, 0, 0);
+            background-color: rgba(0, 0, 0, 0);
         }
+    </style>
+
+<!-- Setting CSS styles for our tooltips: -->
+    <style>
+.info {
+    padding: 6px 8px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: white;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+}
+.info h4 {
+    margin: 0 0 5px;
+    color: #777;
+}
+/* The following CSS code for the legend is crucial in order for the color samples to show up correctly. */
+.legend { text-align: left; line-height: 18px; color: #555; } .legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.7; }</style>
     </style>
 
 
@@ -186,9 +207,19 @@ Unfortunately, for some reason, it didn't work on my end.-->
             ]
         };
 
+        // console.log("Testing out a printout of each state's abbreviation:");
+        // // Testing out a means of looping through this GEOJSON data (which may come in handy at times):
+        // // This approach is based on Paul Fitzgerald's response at:
+        // // https://stackoverflow.com/a/30133790/13097194
+        // let agStateDataFeatures = agStateData["features"];
+        // console.log("There are",agStateDataFeatures.length,"individual state features in the dataset.");
+        //     for (i = 0; i < agStateDataFeatures.length; i++)
+        // {console.log(agStateDataFeatures[i]["properties"]["STUSPS"]);} // This code works.
+
+
         // Loading in state data created within Python:
         // Adding JSON data as a variable here does allow Danfo.js to process it. (I could try reading in the file from a URL as well, but that might require more code and/or another library to help with the processing.)
-        let state_json_data = [{ "State": "New Mexico", "average_hours": 0.0400805275, "pct_with_smartphones": 59.2725823785, "pct_who_spank": 32.9937630501, "pct_homeschooled": 32.8262331812, "ap_index": 2, "average_hours_percentile": 17.6470588235, "pct_with_smartphones_percentile": 56.862745098, "pct_who_spank_percentile": 35.2941176471, "pct_homeschooled_percentile": 25.4901960784, "ap_index_percentile": 10.7843137255 }, { "State": "South Dakota", "average_hours": 0.9266440577, "pct_with_smartphones": 98.1408352721, "pct_who_spank": 58.1579252837, "pct_homeschooled": 0.83674171, "ap_index": 10, "average_hours_percentile": 47.0588235294, "pct_with_smartphones_percentile": 100.0, "pct_who_spank_percentile": 66.6666666667, "pct_homeschooled_percentile": 3.9215686275, "ap_index_percentile": 95.0980392157 }, { "State": "California", "average_hours": 2.5842013775, "pct_with_smartphones": 15.990967189, "pct_who_spank": 11.582591674, "pct_homeschooled": 11.2886973583, "ap_index": 5, "average_hours_percentile": 66.6666666667, "pct_with_smartphones_percentile": 15.6862745098, "pct_who_spank_percentile": 15.6862745098, "pct_homeschooled_percentile": 9.8039215686, "ap_index_percentile": 43.137254902 }, { "State": "Kentucky", "average_hours": 2.5944180095, "pct_with_smartphones": 67.8102767888, "pct_who_spank": 1.6921999534, "pct_homeschooled": 77.2038841176, "ap_index": 3, "average_hours_percentile": 70.5882352941, "pct_with_smartphones_percentile": 72.5490196078, "pct_who_spank_percentile": 1.9607843137, "pct_homeschooled_percentile": 74.5098039216, "ap_index_percentile": 22.5490196078 }, { "State": "Alabama", "average_hours": 0.0020250343, "pct_with_smartphones": 34.3946237526, "pct_who_spank": 92.5190747632, "pct_homeschooled": 64.1774432075, "ap_index": 0, "average_hours_percentile": 9.8039215686, "pct_with_smartphones_percentile": 41.1764705882, "pct_who_spank_percentile": 94.1176470588, "pct_homeschooled_percentile": 56.862745098, "ap_index_percentile": 1.9607843137 }, { "State": "Georgia", "average_hours": 0.1692900312, "pct_with_smartphones": 86.970797724, "pct_who_spank": 2.6110107118, "pct_homeschooled": 99.5306407226, "ap_index": 9, "average_hours_percentile": 23.5294117647, "pct_with_smartphones_percentile": 84.3137254902, "pct_who_spank_percentile": 5.8823529412, "pct_homeschooled_percentile": 100.0, "ap_index_percentile": 81.3725490196 }, { "State": "Arkansas", "average_hours": 0.0000000003, "pct_with_smartphones": 87.3039783272, "pct_who_spank": 62.8351929603, "pct_homeschooled": 0.1688472263, "ap_index": 7, "average_hours_percentile": 1.9607843137, "pct_with_smartphones_percentile": 86.2745098039, "pct_who_spank_percentile": 72.5490196078, "pct_homeschooled_percentile": 1.9607843137, "ap_index_percentile": 63.7254901961 }, { "State": "Pennsylvania", "average_hours": 2.1430472732, "pct_with_smartphones": 52.5016306718, "pct_who_spank": 55.0390954783, "pct_homeschooled": 80.7524925887, "ap_index": 10, "average_hours_percentile": 60.7843137255, "pct_with_smartphones_percentile": 49.0196078431, "pct_who_spank_percentile": 60.7843137255, "pct_homeschooled_percentile": 82.3529411765, "ap_index_percentile": 95.0980392157 }, { "State": "Missouri", "average_hours": 0.2582198622, "pct_with_smartphones": 8.9967712097, "pct_who_spank": 48.4428182054, "pct_homeschooled": 36.1393357238, "ap_index": 1, "average_hours_percentile": 27.4509803922, "pct_with_smartphones_percentile": 9.8039215686, "pct_who_spank_percentile": 54.9019607843, "pct_homeschooled_percentile": 27.4509803922, "ap_index_percentile": 3.9215686275 }, { "State": "Colorado", "average_hours": 1.0898744856, "pct_with_smartphones": 58.5186020764, "pct_who_spank": 96.6845098891, "pct_homeschooled": 1.4515564853, "ap_index": 6, "average_hours_percentile": 49.0196078431, "pct_with_smartphones_percentile": 54.9019607843, "pct_who_spank_percentile": 96.0784313725, "pct_homeschooled_percentile": 5.8823529412, "ap_index_percentile": 51.9607843137 }, { "State": "Utah", "average_hours": 4.4041572177, "pct_with_smartphones": 73.5200945407, "pct_who_spank": 56.5076090891, "pct_homeschooled": 80.1657574198, "ap_index": 9, "average_hours_percentile": 82.3529411765, "pct_with_smartphones_percentile": 74.5098039216, "pct_who_spank_percentile": 64.7058823529, "pct_homeschooled_percentile": 78.431372549, "ap_index_percentile": 81.3725490196 }, { "State": "Oklahoma", "average_hours": 6.4752846486, "pct_with_smartphones": 47.3432562831, "pct_who_spank": 51.3045834671, "pct_homeschooled": 52.6299522125, "ap_index": 4, "average_hours_percentile": 88.2352941176, "pct_with_smartphones_percentile": 43.137254902, "pct_who_spank_percentile": 56.862745098, "pct_homeschooled_percentile": 45.0980392157, "ap_index_percentile": 33.3333333333 }, { "State": "Tennessee", "average_hours": 0.1219515095, "pct_with_smartphones": 28.0022570747, "pct_who_spank": 70.8823187837, "pct_homeschooled": 51.8979575669, "ap_index": 4, "average_hours_percentile": 19.6078431373, "pct_with_smartphones_percentile": 31.3725490196, "pct_who_spank_percentile": 80.3921568627, "pct_homeschooled_percentile": 43.137254902, "ap_index_percentile": 33.3333333333 }, { "State": "Wyoming", "average_hours": 0.3433267268, "pct_with_smartphones": 97.6894216428, "pct_who_spank": 10.8070330956, "pct_homeschooled": 65.3360145184, "ap_index": 9, "average_hours_percentile": 35.2941176471, "pct_with_smartphones_percentile": 98.0392156863, "pct_who_spank_percentile": 13.7254901961, "pct_homeschooled_percentile": 60.7843137255, "ap_index_percentile": 81.3725490196 }, { "State": "New York", "average_hours": 1.2587815963, "pct_with_smartphones": 22.1299841256, "pct_who_spank": 19.8273091989, "pct_homeschooled": 94.1281790568, "ap_index": 10, "average_hours_percentile": 50.9803921569, "pct_with_smartphones_percentile": 25.4901960784, "pct_who_spank_percentile": 27.4509803922, "pct_homeschooled_percentile": 94.1176470588, "ap_index_percentile": 95.0980392157 }, { "State": "Indiana", "average_hours": 1.8870944452, "pct_with_smartphones": 20.5988024792, "pct_who_spank": 89.230039572, "pct_homeschooled": 37.8723962463, "ap_index": 6, "average_hours_percentile": 58.8235294118, "pct_with_smartphones_percentile": 23.5294117647, "pct_who_spank_percentile": 92.1568627451, "pct_homeschooled_percentile": 29.4117647059, "ap_index_percentile": 51.9607843137 }, { "State": "Kansas", "average_hours": 0.6536691657, "pct_with_smartphones": 15.1181230886, "pct_who_spank": 64.2113546828, "pct_homeschooled": 11.5841232734, "ap_index": 9, "average_hours_percentile": 43.137254902, "pct_with_smartphones_percentile": 11.7647058824, "pct_who_spank_percentile": 74.5098039216, "pct_homeschooled_percentile": 11.7647058824, "ap_index_percentile": 81.3725490196 }, { "State": "Idaho", "average_hours": 9.0026847747, "pct_with_smartphones": 25.3577184457, "pct_who_spank": 78.1068860569, "pct_homeschooled": 8.3330224226, "ap_index": 2, "average_hours_percentile": 98.0392156863, "pct_with_smartphones_percentile": 29.4117647059, "pct_who_spank_percentile": 86.2745098039, "pct_homeschooled_percentile": 7.8431372549, "ap_index_percentile": 10.7843137255 }, { "State": "Alaska", "average_hours": 7.1413806631, "pct_with_smartphones": 28.746493878, "pct_who_spank": 4.9402432686, "pct_homeschooled": 81.4538310737, "ap_index": 7, "average_hours_percentile": 90.1960784314, "pct_with_smartphones_percentile": 35.2941176471, "pct_who_spank_percentile": 9.8039215686, "pct_homeschooled_percentile": 84.3137254902, "ap_index_percentile": 63.7254901961 }, { "State": "Nevada", "average_hours": 0.0074780644, "pct_with_smartphones": 65.6127084999, "pct_who_spank": 82.2968082506, "pct_homeschooled": 75.3439675175, "ap_index": 2, "average_hours_percentile": 11.7647058824, "pct_with_smartphones_percentile": 66.6666666667, "pct_who_spank_percentile": 90.1960784314, "pct_homeschooled_percentile": 66.6666666667, "ap_index_percentile": 10.7843137255 }, { "State": "Illinois", "average_hours": 0.3176611415, "pct_with_smartphones": 23.6697568689, "pct_who_spank": 1.7112876755, "pct_homeschooled": 23.8150944223, "ap_index": 7, "average_hours_percentile": 33.3333333333, "pct_with_smartphones_percentile": 27.4509803922, "pct_who_spank_percentile": 3.9215686275, "pct_homeschooled_percentile": 21.568627451, "ap_index_percentile": 63.7254901961 }, { "State": "Vermont", "average_hours": 1.6204838193, "pct_with_smartphones": 29.4566036989, "pct_who_spank": 40.2144883057, "pct_homeschooled": 59.8762926322, "ap_index": 10, "average_hours_percentile": 54.9019607843, "pct_with_smartphones_percentile": 37.2549019608, "pct_who_spank_percentile": 49.0196078431, "pct_homeschooled_percentile": 52.9411764706, "ap_index_percentile": 95.0980392157 }, { "State": "Minnesota", "average_hours": 0.1419945099, "pct_with_smartphones": 89.4438892557, "pct_who_spank": 54.9530145235, "pct_homeschooled": 76.9817468029, "ap_index": 10, "average_hours_percentile": 21.568627451, "pct_with_smartphones_percentile": 92.1568627451, "pct_who_spank_percentile": 58.8235294118, "pct_homeschooled_percentile": 70.5882352941, "ap_index_percentile": 95.0980392157 }, { "State": "Iowa", "average_hours": 2.1536917369, "pct_with_smartphones": 48.4594963176, "pct_who_spank": 70.1843916212, "pct_homeschooled": 39.4435960041, "ap_index": 4, "average_hours_percentile": 64.7058823529, "pct_with_smartphones_percentile": 45.0980392157, "pct_who_spank_percentile": 78.431372549, "pct_homeschooled_percentile": 31.3725490196, "ap_index_percentile": 33.3333333333 }, { "State": "South Carolina", "average_hours": 5.8493099847, "pct_with_smartphones": 50.9651047886, "pct_who_spank": 96.857672861, "pct_homeschooled": 86.3196568855, "ap_index": 9, "average_hours_percentile": 86.2745098039, "pct_with_smartphones_percentile": 47.0588235294, "pct_who_spank_percentile": 98.0392156863, "pct_homeschooled_percentile": 86.2745098039, "ap_index_percentile": 81.3725490196 }, { "State": "New Hampshire", "average_hours": 3.9872330243, "pct_with_smartphones": 18.6138529857, "pct_who_spank": 19.3650291601, "pct_homeschooled": 53.9423136842, "ap_index": 9, "average_hours_percentile": 78.431372549, "pct_with_smartphones_percentile": 19.6078431373, "pct_who_spank_percentile": 25.4901960784, "pct_homeschooled_percentile": 47.0588235294, "ap_index_percentile": 81.3725490196 }, { "State": "Delaware", "average_hours": 0.5454104428, "pct_with_smartphones": 67.589716352, "pct_who_spank": 39.539038886, "pct_homeschooled": 14.2157554825, "ap_index": 4, "average_hours_percentile": 41.1764705882, "pct_with_smartphones_percentile": 70.5882352941, "pct_who_spank_percentile": 43.137254902, "pct_homeschooled_percentile": 15.6862745098, "ap_index_percentile": 33.3333333333 }, { "State": "District of Columbia", "average_hours": 0.001671628, "pct_with_smartphones": 87.5615548275, "pct_who_spank": 17.729461631, "pct_homeschooled": 55.0483896174, "ap_index": 4, "average_hours_percentile": 7.8431372549, "pct_with_smartphones_percentile": 88.2352941176, "pct_who_spank_percentile": 21.568627451, "pct_homeschooled_percentile": 49.0196078431, "ap_index_percentile": 33.3333333333 }, { "State": "Connecticut", "average_hours": 1.6315429098, "pct_with_smartphones": 33.1018412751, "pct_who_spank": 26.9844897475, "pct_homeschooled": 16.9197765099, "ap_index": 7, "average_hours_percentile": 56.862745098, "pct_with_smartphones_percentile": 39.2156862745, "pct_who_spank_percentile": 33.3333333333, "pct_homeschooled_percentile": 17.6470588235, "ap_index_percentile": 63.7254901961 }, { "State": "Michigan", "average_hours": 0.0001358324, "pct_with_smartphones": 76.1730896425, "pct_who_spank": 34.4362356953, "pct_homeschooled": 41.5801483189, "ap_index": 2, "average_hours_percentile": 5.8823529412, "pct_with_smartphones_percentile": 78.431372549, "pct_who_spank_percentile": 39.2156862745, "pct_homeschooled_percentile": 35.2941176471, "ap_index_percentile": 10.7843137255 }, { "State": "Massachusetts", "average_hours": 9.6469746978, "pct_with_smartphones": 66.4061302128, "pct_who_spank": 39.9245619719, "pct_homeschooled": 77.043031066, "ap_index": 3, "average_hours_percentile": 100.0, "pct_with_smartphones_percentile": 68.6274509804, "pct_who_spank_percentile": 47.0588235294, "pct_homeschooled_percentile": 72.5490196078, "ap_index_percentile": 22.5490196078 }, { "State": "Florida", "average_hours": 1.380316938, "pct_with_smartphones": 78.2042497196, "pct_who_spank": 43.0810021938, "pct_homeschooled": 65.8682089521, "ap_index": 5, "average_hours_percentile": 52.9411764706, "pct_with_smartphones_percentile": 80.3921568627, "pct_who_spank_percentile": 50.9803921569, "pct_homeschooled_percentile": 62.7450980392, "ap_index_percentile": 43.137254902 }, { "State": "New Jersey", "average_hours": 4.2765814546, "pct_with_smartphones": 73.6293404355, "pct_who_spank": 18.7239749727, "pct_homeschooled": 48.8031365706, "ap_index": 10, "average_hours_percentile": 80.3921568627, "pct_with_smartphones_percentile": 76.4705882353, "pct_who_spank_percentile": 23.5294117647, "pct_homeschooled_percentile": 41.1764705882, "ap_index_percentile": 95.0980392157 }, { "State": "North Dakota", "average_hours": 0.4938935955, "pct_with_smartphones": 64.4584853569, "pct_who_spank": 14.4642129638, "pct_homeschooled": 27.7386116098, "ap_index": 6, "average_hours_percentile": 39.2156862745, "pct_with_smartphones_percentile": 64.7058823529, "pct_who_spank_percentile": 19.6078431373, "pct_homeschooled_percentile": 23.5294117647, "ap_index_percentile": 51.9607843137 }, { "State": "Maryland", "average_hours": 3.4137986345, "pct_with_smartphones": 2.1134914318, "pct_who_spank": 75.7578167772, "pct_homeschooled": 12.2769132278, "ap_index": 6, "average_hours_percentile": 76.4705882353, "pct_with_smartphones_percentile": 5.8823529412, "pct_who_spank_percentile": 82.3529411765, "pct_homeschooled_percentile": 13.7254901961, "ap_index_percentile": 51.9607843137 }, { "State": "Maine", "average_hours": 2.5842987023, "pct_with_smartphones": 63.4296324563, "pct_who_spank": 76.626360655, "pct_homeschooled": 45.0439416617, "ap_index": 3, "average_hours_percentile": 68.6274509804, "pct_with_smartphones_percentile": 62.7450980392, "pct_who_spank_percentile": 84.3137254902, "pct_homeschooled_percentile": 39.2156862745, "ap_index_percentile": 22.5490196078 }, { "State": "Hawaii", "average_hours": 3.1111430038, "pct_with_smartphones": 17.2348126411, "pct_who_spank": 60.5887282538, "pct_homeschooled": 80.5062354448, "ap_index": 5, "average_hours_percentile": 74.5098039216, "pct_with_smartphones_percentile": 17.6470588235, "pct_who_spank_percentile": 70.5882352941, "pct_homeschooled_percentile": 80.3921568627, "ap_index_percentile": 43.137254902 }, { "State": "Rhode Island", "average_hours": 0.0123714134, "pct_with_smartphones": 97.4543176419, "pct_who_spank": 26.6477378522, "pct_homeschooled": 96.6178530595, "ap_index": 7, "average_hours_percentile": 13.7254901961, "pct_with_smartphones_percentile": 96.0784313725, "pct_who_spank_percentile": 31.3725490196, "pct_homeschooled_percentile": 96.0784313725, "ap_index_percentile": 63.7254901961 }, { "State": "Montana", "average_hours": 0.0224544741, "pct_with_smartphones": 52.6838757122, "pct_who_spank": 33.437535486, "pct_homeschooled": 76.5620746015, "ap_index": 3, "average_hours_percentile": 15.6862745098, "pct_with_smartphones_percentile": 50.9803921569, "pct_who_spank_percentile": 37.2549019608, "pct_homeschooled_percentile": 68.6274509804, "ap_index_percentile": 22.5490196078 }, { "State": "Arizona", "average_hours": 5.3446727295, "pct_with_smartphones": 87.6937548997, "pct_who_spank": 55.2032766029, "pct_homeschooled": 60.6197769507, "ap_index": 9, "average_hours_percentile": 84.3137254902, "pct_with_smartphones_percentile": 90.1960784314, "pct_who_spank_percentile": 62.7450980392, "pct_homeschooled_percentile": 54.9019607843, "ap_index_percentile": 81.3725490196 }, { "State": "Nebraska", "average_hours": 0.8106334999, "pct_with_smartphones": 28.0813849737, "pct_who_spank": 98.4732181149, "pct_homeschooled": 77.6245920901, "ap_index": 2, "average_hours_percentile": 45.0980392157, "pct_with_smartphones_percentile": 33.3333333333, "pct_who_spank_percentile": 100.0, "pct_homeschooled_percentile": 76.4705882353, "ap_index_percentile": 10.7843137255 }, { "State": "Washington", "average_hours": 0.1802296486, "pct_with_smartphones": 53.8620552738, "pct_who_spank": 21.8889799165, "pct_homeschooled": 88.3852434398, "ap_index": 5, "average_hours_percentile": 25.4901960784, "pct_with_smartphones_percentile": 52.9411764706, "pct_who_spank_percentile": 29.4117647059, "pct_homeschooled_percentile": 88.2352941176, "ap_index_percentile": 43.137254902 }, { "State": "Texas", "average_hours": 8.9783947589, "pct_with_smartphones": 7.2416708954, "pct_who_spank": 81.738449685, "pct_homeschooled": 21.1498229927, "ap_index": 3, "average_hours_percentile": 96.0784313725, "pct_with_smartphones_percentile": 7.8431372549, "pct_who_spank_percentile": 88.2352941176, "pct_homeschooled_percentile": 19.6078431373, "ap_index_percentile": 22.5490196078 }, { "State": "Ohio", "average_hours": 2.7106924899, "pct_with_smartphones": 1.0109946613, "pct_who_spank": 4.5053490152, "pct_homeschooled": 44.1398761653, "ap_index": 7, "average_hours_percentile": 72.5490196078, "pct_with_smartphones_percentile": 1.9607843137, "pct_who_spank_percentile": 7.8431372549, "pct_homeschooled_percentile": 37.2549019608, "ap_index_percentile": 63.7254901961 }, { "State": "Wisconsin", "average_hours": 0.2972879614, "pct_with_smartphones": 62.4354881788, "pct_who_spank": 46.3225875568, "pct_homeschooled": 64.6714699012, "ap_index": 7, "average_hours_percentile": 31.3725490196, "pct_with_smartphones_percentile": 60.7843137255, "pct_who_spank_percentile": 52.9411764706, "pct_homeschooled_percentile": 58.8235294118, "ap_index_percentile": 63.7254901961 }, { "State": "Oregon", "average_hours": 7.5637906384, "pct_with_smartphones": 20.280180463, "pct_who_spank": 67.9816269701, "pct_homeschooled": 71.3607711026, "ap_index": 5, "average_hours_percentile": 94.1176470588, "pct_with_smartphones_percentile": 21.568627451, "pct_who_spank_percentile": 76.4705882353, "pct_homeschooled_percentile": 64.7058823529, "ap_index_percentile": 43.137254902 }, { "State": "Mississippi", "average_hours": 0.4854528138, "pct_with_smartphones": 15.9800635746, "pct_who_spank": 14.1650146014, "pct_homeschooled": 97.9284455192, "ap_index": 8, "average_hours_percentile": 37.2549019608, "pct_with_smartphones_percentile": 13.7254901961, "pct_who_spank_percentile": 17.6470588235, "pct_homeschooled_percentile": 98.0392156863, "ap_index_percentile": 72.5490196078 }, { "State": "North Carolina", "average_hours": 7.2967947136, "pct_with_smartphones": 84.7730314394, "pct_who_spank": 10.0794598096, "pct_homeschooled": 57.1896999245, "ap_index": 7, "average_hours_percentile": 92.1568627451, "pct_with_smartphones_percentile": 82.3529411765, "pct_who_spank_percentile": 11.7647058824, "pct_homeschooled_percentile": 50.9803921569, "ap_index_percentile": 63.7254901961 }, { "State": "Virginia", "average_hours": 0.0001196027, "pct_with_smartphones": 91.6558553068, "pct_who_spank": 39.5453008762, "pct_homeschooled": 89.4000633783, "ap_index": 9, "average_hours_percentile": 3.9215686275, "pct_with_smartphones_percentile": 94.1176470588, "pct_who_spank_percentile": 45.0980392157, "pct_homeschooled_percentile": 90.1960784314, "ap_index_percentile": 81.3725490196 }, { "State": "West Virginia", "average_hours": 2.1523501037, "pct_with_smartphones": 62.3656773721, "pct_who_spank": 60.1436915516, "pct_homeschooled": 92.039088521, "ap_index": 3, "average_hours_percentile": 62.7450980392, "pct_with_smartphones_percentile": 58.8235294118, "pct_who_spank_percentile": 68.6274509804, "pct_homeschooled_percentile": 92.1568627451, "ap_index_percentile": 22.5490196078 }, { "State": "Louisiana", "average_hours": 0.2624839141, "pct_with_smartphones": 2.0631317708, "pct_who_spank": 36.7578640345, "pct_homeschooled": 40.9985249203, "ap_index": 2, "average_hours_percentile": 29.4117647059, "pct_with_smartphones_percentile": 3.9215686275, "pct_who_spank_percentile": 41.1764705882, "pct_homeschooled_percentile": 33.3333333333, "ap_index_percentile": 10.7843137255 }];
+            let state_json_data = [{ "State": "New Mexico", "average_hours": 0.0400805275, "pct_with_smartphones": 59.2725823785, "pct_who_spank": 32.9937630501, "pct_homeschooled": 32.8262331812, "ap_index": 2, "average_hours_percentile": 17.6470588235, "pct_with_smartphones_percentile": 56.862745098, "pct_who_spank_percentile": 35.2941176471, "pct_homeschooled_percentile": 25.4901960784, "ap_index_percentile": 10.7843137255 }, { "State": "South Dakota", "average_hours": 0.9266440577, "pct_with_smartphones": 98.1408352721, "pct_who_spank": 58.1579252837, "pct_homeschooled": 0.83674171, "ap_index": 10, "average_hours_percentile": 47.0588235294, "pct_with_smartphones_percentile": 100.0, "pct_who_spank_percentile": 66.6666666667, "pct_homeschooled_percentile": 3.9215686275, "ap_index_percentile": 95.0980392157 }, { "State": "California", "average_hours": 2.5842013775, "pct_with_smartphones": 15.990967189, "pct_who_spank": 11.582591674, "pct_homeschooled": 11.2886973583, "ap_index": 5, "average_hours_percentile": 66.6666666667, "pct_with_smartphones_percentile": 15.6862745098, "pct_who_spank_percentile": 15.6862745098, "pct_homeschooled_percentile": 9.8039215686, "ap_index_percentile": 43.137254902 }, { "State": "Kentucky", "average_hours": 2.5944180095, "pct_with_smartphones": 67.8102767888, "pct_who_spank": 1.6921999534, "pct_homeschooled": 77.2038841176, "ap_index": 3, "average_hours_percentile": 70.5882352941, "pct_with_smartphones_percentile": 72.5490196078, "pct_who_spank_percentile": 1.9607843137, "pct_homeschooled_percentile": 74.5098039216, "ap_index_percentile": 22.5490196078 }, { "State": "Alabama", "average_hours": 0.0020250343, "pct_with_smartphones": 34.3946237526, "pct_who_spank": 92.5190747632, "pct_homeschooled": 64.1774432075, "ap_index": 0, "average_hours_percentile": 9.8039215686, "pct_with_smartphones_percentile": 41.1764705882, "pct_who_spank_percentile": 94.1176470588, "pct_homeschooled_percentile": 56.862745098, "ap_index_percentile": 1.9607843137 }, { "State": "Georgia", "average_hours": 0.1692900312, "pct_with_smartphones": 86.970797724, "pct_who_spank": 2.6110107118, "pct_homeschooled": 99.5306407226, "ap_index": 9, "average_hours_percentile": 23.5294117647, "pct_with_smartphones_percentile": 84.3137254902, "pct_who_spank_percentile": 5.8823529412, "pct_homeschooled_percentile": 100.0, "ap_index_percentile": 81.3725490196 }, { "State": "Arkansas", "average_hours": 0.0000000003, "pct_with_smartphones": 87.3039783272, "pct_who_spank": 62.8351929603, "pct_homeschooled": 0.1688472263, "ap_index": 7, "average_hours_percentile": 1.9607843137, "pct_with_smartphones_percentile": 86.2745098039, "pct_who_spank_percentile": 72.5490196078, "pct_homeschooled_percentile": 1.9607843137, "ap_index_percentile": 63.7254901961 }, { "State": "Pennsylvania", "average_hours": 2.1430472732, "pct_with_smartphones": 52.5016306718, "pct_who_spank": 55.0390954783, "pct_homeschooled": 80.7524925887, "ap_index": 10, "average_hours_percentile": 60.7843137255, "pct_with_smartphones_percentile": 49.0196078431, "pct_who_spank_percentile": 60.7843137255, "pct_homeschooled_percentile": 82.3529411765, "ap_index_percentile": 95.0980392157 }, { "State": "Missouri", "average_hours": 0.2582198622, "pct_with_smartphones": 8.9967712097, "pct_who_spank": 48.4428182054, "pct_homeschooled": 36.1393357238, "ap_index": 1, "average_hours_percentile": 27.4509803922, "pct_with_smartphones_percentile": 9.8039215686, "pct_who_spank_percentile": 54.9019607843, "pct_homeschooled_percentile": 27.4509803922, "ap_index_percentile": 3.9215686275 }, { "State": "Colorado", "average_hours": 1.0898744856, "pct_with_smartphones": 58.5186020764, "pct_who_spank": 96.6845098891, "pct_homeschooled": 1.4515564853, "ap_index": 6, "average_hours_percentile": 49.0196078431, "pct_with_smartphones_percentile": 54.9019607843, "pct_who_spank_percentile": 96.0784313725, "pct_homeschooled_percentile": 5.8823529412, "ap_index_percentile": 51.9607843137 }, { "State": "Utah", "average_hours": 4.4041572177, "pct_with_smartphones": 73.5200945407, "pct_who_spank": 56.5076090891, "pct_homeschooled": 80.1657574198, "ap_index": 9, "average_hours_percentile": 82.3529411765, "pct_with_smartphones_percentile": 74.5098039216, "pct_who_spank_percentile": 64.7058823529, "pct_homeschooled_percentile": 78.431372549, "ap_index_percentile": 81.3725490196 }, { "State": "Oklahoma", "average_hours": 6.4752846486, "pct_with_smartphones": 47.3432562831, "pct_who_spank": 51.3045834671, "pct_homeschooled": 52.6299522125, "ap_index": 4, "average_hours_percentile": 88.2352941176, "pct_with_smartphones_percentile": 43.137254902, "pct_who_spank_percentile": 56.862745098, "pct_homeschooled_percentile": 45.0980392157, "ap_index_percentile": 33.3333333333 }, { "State": "Tennessee", "average_hours": 0.1219515095, "pct_with_smartphones": 28.0022570747, "pct_who_spank": 70.8823187837, "pct_homeschooled": 51.8979575669, "ap_index": 4, "average_hours_percentile": 19.6078431373, "pct_with_smartphones_percentile": 31.3725490196, "pct_who_spank_percentile": 80.3921568627, "pct_homeschooled_percentile": 43.137254902, "ap_index_percentile": 33.3333333333 }, { "State": "Wyoming", "average_hours": 0.3433267268, "pct_with_smartphones": 97.6894216428, "pct_who_spank": 10.8070330956, "pct_homeschooled": 65.3360145184, "ap_index": 9, "average_hours_percentile": 35.2941176471, "pct_with_smartphones_percentile": 98.0392156863, "pct_who_spank_percentile": 13.7254901961, "pct_homeschooled_percentile": 60.7843137255, "ap_index_percentile": 81.3725490196 }, { "State": "New York", "average_hours": 1.2587815963, "pct_with_smartphones": 22.1299841256, "pct_who_spank": 19.8273091989, "pct_homeschooled": 94.1281790568, "ap_index": 10, "average_hours_percentile": 50.9803921569, "pct_with_smartphones_percentile": 25.4901960784, "pct_who_spank_percentile": 27.4509803922, "pct_homeschooled_percentile": 94.1176470588, "ap_index_percentile": 95.0980392157 }, { "State": "Indiana", "average_hours": 1.8870944452, "pct_with_smartphones": 20.5988024792, "pct_who_spank": 89.230039572, "pct_homeschooled": 37.8723962463, "ap_index": 6, "average_hours_percentile": 58.8235294118, "pct_with_smartphones_percentile": 23.5294117647, "pct_who_spank_percentile": 92.1568627451, "pct_homeschooled_percentile": 29.4117647059, "ap_index_percentile": 51.9607843137 }, { "State": "Kansas", "average_hours": 0.6536691657, "pct_with_smartphones": 15.1181230886, "pct_who_spank": 64.2113546828, "pct_homeschooled": 11.5841232734, "ap_index": 9, "average_hours_percentile": 43.137254902, "pct_with_smartphones_percentile": 11.7647058824, "pct_who_spank_percentile": 74.5098039216, "pct_homeschooled_percentile": 11.7647058824, "ap_index_percentile": 81.3725490196 }, { "State": "Idaho", "average_hours": 9.0026847747, "pct_with_smartphones": 25.3577184457, "pct_who_spank": 78.1068860569, "pct_homeschooled": 8.3330224226, "ap_index": 2, "average_hours_percentile": 98.0392156863, "pct_with_smartphones_percentile": 29.4117647059, "pct_who_spank_percentile": 86.2745098039, "pct_homeschooled_percentile": 7.8431372549, "ap_index_percentile": 10.7843137255 }, { "State": "Alaska", "average_hours": 7.1413806631, "pct_with_smartphones": 28.746493878, "pct_who_spank": 4.9402432686, "pct_homeschooled": 81.4538310737, "ap_index": 7, "average_hours_percentile": 90.1960784314, "pct_with_smartphones_percentile": 35.2941176471, "pct_who_spank_percentile": 9.8039215686, "pct_homeschooled_percentile": 84.3137254902, "ap_index_percentile": 63.7254901961 }, { "State": "Nevada", "average_hours": 0.0074780644, "pct_with_smartphones": 65.6127084999, "pct_who_spank": 82.2968082506, "pct_homeschooled": 75.3439675175, "ap_index": 2, "average_hours_percentile": 11.7647058824, "pct_with_smartphones_percentile": 66.6666666667, "pct_who_spank_percentile": 90.1960784314, "pct_homeschooled_percentile": 66.6666666667, "ap_index_percentile": 10.7843137255 }, { "State": "Illinois", "average_hours": 0.3176611415, "pct_with_smartphones": 23.6697568689, "pct_who_spank": 1.7112876755, "pct_homeschooled": 23.8150944223, "ap_index": 7, "average_hours_percentile": 33.3333333333, "pct_with_smartphones_percentile": 27.4509803922, "pct_who_spank_percentile": 3.9215686275, "pct_homeschooled_percentile": 21.568627451, "ap_index_percentile": 63.7254901961 }, { "State": "Vermont", "average_hours": 1.6204838193, "pct_with_smartphones": 29.4566036989, "pct_who_spank": 40.2144883057, "pct_homeschooled": 59.8762926322, "ap_index": 10, "average_hours_percentile": 54.9019607843, "pct_with_smartphones_percentile": 37.2549019608, "pct_who_spank_percentile": 49.0196078431, "pct_homeschooled_percentile": 52.9411764706, "ap_index_percentile": 95.0980392157 }, { "State": "Minnesota", "average_hours": 0.1419945099, "pct_with_smartphones": 89.4438892557, "pct_who_spank": 54.9530145235, "pct_homeschooled": 76.9817468029, "ap_index": 10, "average_hours_percentile": 21.568627451, "pct_with_smartphones_percentile": 92.1568627451, "pct_who_spank_percentile": 58.8235294118, "pct_homeschooled_percentile": 70.5882352941, "ap_index_percentile": 95.0980392157 }, { "State": "Iowa", "average_hours": 2.1536917369, "pct_with_smartphones": 48.4594963176, "pct_who_spank": 70.1843916212, "pct_homeschooled": 39.4435960041, "ap_index": 4, "average_hours_percentile": 64.7058823529, "pct_with_smartphones_percentile": 45.0980392157, "pct_who_spank_percentile": 78.431372549, "pct_homeschooled_percentile": 31.3725490196, "ap_index_percentile": 33.3333333333 }, { "State": "South Carolina", "average_hours": 5.8493099847, "pct_with_smartphones": 50.9651047886, "pct_who_spank": 96.857672861, "pct_homeschooled": 86.3196568855, "ap_index": 9, "average_hours_percentile": 86.2745098039, "pct_with_smartphones_percentile": 47.0588235294, "pct_who_spank_percentile": 98.0392156863, "pct_homeschooled_percentile": 86.2745098039, "ap_index_percentile": 81.3725490196 }, { "State": "New Hampshire", "average_hours": 3.9872330243, "pct_with_smartphones": 18.6138529857, "pct_who_spank": 19.3650291601, "pct_homeschooled": 53.9423136842, "ap_index": 9, "average_hours_percentile": 78.431372549, "pct_with_smartphones_percentile": 19.6078431373, "pct_who_spank_percentile": 25.4901960784, "pct_homeschooled_percentile": 47.0588235294, "ap_index_percentile": 81.3725490196 }, { "State": "Delaware", "average_hours": 0.5454104428, "pct_with_smartphones": 67.589716352, "pct_who_spank": 39.539038886, "pct_homeschooled": 14.2157554825, "ap_index": 4, "average_hours_percentile": 41.1764705882, "pct_with_smartphones_percentile": 70.5882352941, "pct_who_spank_percentile": 43.137254902, "pct_homeschooled_percentile": 15.6862745098, "ap_index_percentile": 33.3333333333 }, { "State": "District of Columbia", "average_hours": 0.001671628, "pct_with_smartphones": 87.5615548275, "pct_who_spank": 17.729461631, "pct_homeschooled": 55.0483896174, "ap_index": 4, "average_hours_percentile": 7.8431372549, "pct_with_smartphones_percentile": 88.2352941176, "pct_who_spank_percentile": 21.568627451, "pct_homeschooled_percentile": 49.0196078431, "ap_index_percentile": 33.3333333333 }, { "State": "Connecticut", "average_hours": 1.6315429098, "pct_with_smartphones": 33.1018412751, "pct_who_spank": 26.9844897475, "pct_homeschooled": 16.9197765099, "ap_index": 7, "average_hours_percentile": 56.862745098, "pct_with_smartphones_percentile": 39.2156862745, "pct_who_spank_percentile": 33.3333333333, "pct_homeschooled_percentile": 17.6470588235, "ap_index_percentile": 63.7254901961 }, { "State": "Michigan", "average_hours": 0.0001358324, "pct_with_smartphones": 76.1730896425, "pct_who_spank": 34.4362356953, "pct_homeschooled": 41.5801483189, "ap_index": 2, "average_hours_percentile": 5.8823529412, "pct_with_smartphones_percentile": 78.431372549, "pct_who_spank_percentile": 39.2156862745, "pct_homeschooled_percentile": 35.2941176471, "ap_index_percentile": 10.7843137255 }, { "State": "Massachusetts", "average_hours": 9.6469746978, "pct_with_smartphones": 66.4061302128, "pct_who_spank": 39.9245619719, "pct_homeschooled": 77.043031066, "ap_index": 3, "average_hours_percentile": 100.0, "pct_with_smartphones_percentile": 68.6274509804, "pct_who_spank_percentile": 47.0588235294, "pct_homeschooled_percentile": 72.5490196078, "ap_index_percentile": 22.5490196078 }, { "State": "Florida", "average_hours": 1.380316938, "pct_with_smartphones": 78.2042497196, "pct_who_spank": 43.0810021938, "pct_homeschooled": 65.8682089521, "ap_index": 5, "average_hours_percentile": 52.9411764706, "pct_with_smartphones_percentile": 80.3921568627, "pct_who_spank_percentile": 50.9803921569, "pct_homeschooled_percentile": 62.7450980392, "ap_index_percentile": 43.137254902 }, { "State": "New Jersey", "average_hours": 4.2765814546, "pct_with_smartphones": 73.6293404355, "pct_who_spank": 18.7239749727, "pct_homeschooled": 48.8031365706, "ap_index": 10, "average_hours_percentile": 80.3921568627, "pct_with_smartphones_percentile": 76.4705882353, "pct_who_spank_percentile": 23.5294117647, "pct_homeschooled_percentile": 41.1764705882, "ap_index_percentile": 95.0980392157 }, { "State": "North Dakota", "average_hours": 0.4938935955, "pct_with_smartphones": 64.4584853569, "pct_who_spank": 14.4642129638, "pct_homeschooled": 27.7386116098, "ap_index": 6, "average_hours_percentile": 39.2156862745, "pct_with_smartphones_percentile": 64.7058823529, "pct_who_spank_percentile": 19.6078431373, "pct_homeschooled_percentile": 23.5294117647, "ap_index_percentile": 51.9607843137 }, { "State": "Maryland", "average_hours": 3.4137986345, "pct_with_smartphones": 2.1134914318, "pct_who_spank": 75.7578167772, "pct_homeschooled": 12.2769132278, "ap_index": 6, "average_hours_percentile": 76.4705882353, "pct_with_smartphones_percentile": 5.8823529412, "pct_who_spank_percentile": 82.3529411765, "pct_homeschooled_percentile": 13.7254901961, "ap_index_percentile": 51.9607843137 }, { "State": "Maine", "average_hours": 2.5842987023, "pct_with_smartphones": 63.4296324563, "pct_who_spank": 76.626360655, "pct_homeschooled": 45.0439416617, "ap_index": 3, "average_hours_percentile": 68.6274509804, "pct_with_smartphones_percentile": 62.7450980392, "pct_who_spank_percentile": 84.3137254902, "pct_homeschooled_percentile": 39.2156862745, "ap_index_percentile": 22.5490196078 }, { "State": "Hawaii", "average_hours": 3.1111430038, "pct_with_smartphones": 17.2348126411, "pct_who_spank": 60.5887282538, "pct_homeschooled": 80.5062354448, "ap_index": 5, "average_hours_percentile": 74.5098039216, "pct_with_smartphones_percentile": 17.6470588235, "pct_who_spank_percentile": 70.5882352941, "pct_homeschooled_percentile": 80.3921568627, "ap_index_percentile": 43.137254902 }, { "State": "Rhode Island", "average_hours": 0.0123714134, "pct_with_smartphones": 97.4543176419, "pct_who_spank": 26.6477378522, "pct_homeschooled": 96.6178530595, "ap_index": 7, "average_hours_percentile": 13.7254901961, "pct_with_smartphones_percentile": 96.0784313725, "pct_who_spank_percentile": 31.3725490196, "pct_homeschooled_percentile": 96.0784313725, "ap_index_percentile": 63.7254901961 }, { "State": "Montana", "average_hours": 0.0224544741, "pct_with_smartphones": 52.6838757122, "pct_who_spank": 33.437535486, "pct_homeschooled": 76.5620746015, "ap_index": 3, "average_hours_percentile": 15.6862745098, "pct_with_smartphones_percentile": 50.9803921569, "pct_who_spank_percentile": 37.2549019608, "pct_homeschooled_percentile": 68.6274509804, "ap_index_percentile": 22.5490196078 }, { "State": "Arizona", "average_hours": 5.3446727295, "pct_with_smartphones": 87.6937548997, "pct_who_spank": 55.2032766029, "pct_homeschooled": 60.6197769507, "ap_index": 9, "average_hours_percentile": 84.3137254902, "pct_with_smartphones_percentile": 90.1960784314, "pct_who_spank_percentile": 62.7450980392, "pct_homeschooled_percentile": 54.9019607843, "ap_index_percentile": 81.3725490196 }, { "State": "Nebraska", "average_hours": 0.8106334999, "pct_with_smartphones": 28.0813849737, "pct_who_spank": 98.4732181149, "pct_homeschooled": 77.6245920901, "ap_index": 2, "average_hours_percentile": 45.0980392157, "pct_with_smartphones_percentile": 33.3333333333, "pct_who_spank_percentile": 100.0, "pct_homeschooled_percentile": 76.4705882353, "ap_index_percentile": 10.7843137255 }, { "State": "Washington", "average_hours": 0.1802296486, "pct_with_smartphones": 53.8620552738, "pct_who_spank": 21.8889799165, "pct_homeschooled": 88.3852434398, "ap_index": 5, "average_hours_percentile": 25.4901960784, "pct_with_smartphones_percentile": 52.9411764706, "pct_who_spank_percentile": 29.4117647059, "pct_homeschooled_percentile": 88.2352941176, "ap_index_percentile": 43.137254902 }, { "State": "Texas", "average_hours": 8.9783947589, "pct_with_smartphones": 7.2416708954, "pct_who_spank": 81.738449685, "pct_homeschooled": 21.1498229927, "ap_index": 3, "average_hours_percentile": 96.0784313725, "pct_with_smartphones_percentile": 7.8431372549, "pct_who_spank_percentile": 88.2352941176, "pct_homeschooled_percentile": 19.6078431373, "ap_index_percentile": 22.5490196078 }, { "State": "Ohio", "average_hours": 2.7106924899, "pct_with_smartphones": 1.0109946613, "pct_who_spank": 4.5053490152, "pct_homeschooled": 44.1398761653, "ap_index": 7, "average_hours_percentile": 72.5490196078, "pct_with_smartphones_percentile": 1.9607843137, "pct_who_spank_percentile": 7.8431372549, "pct_homeschooled_percentile": 37.2549019608, "ap_index_percentile": 63.7254901961 }, { "State": "Wisconsin", "average_hours": 0.2972879614, "pct_with_smartphones": 62.4354881788, "pct_who_spank": 46.3225875568, "pct_homeschooled": 64.6714699012, "ap_index": 7, "average_hours_percentile": 31.3725490196, "pct_with_smartphones_percentile": 60.7843137255, "pct_who_spank_percentile": 52.9411764706, "pct_homeschooled_percentile": 58.8235294118, "ap_index_percentile": 63.7254901961 }, { "State": "Oregon", "average_hours": 7.5637906384, "pct_with_smartphones": 20.280180463, "pct_who_spank": 67.9816269701, "pct_homeschooled": 71.3607711026, "ap_index": 5, "average_hours_percentile": 94.1176470588, "pct_with_smartphones_percentile": 21.568627451, "pct_who_spank_percentile": 76.4705882353, "pct_homeschooled_percentile": 64.7058823529, "ap_index_percentile": 43.137254902 }, { "State": "Mississippi", "average_hours": 0.4854528138, "pct_with_smartphones": 15.9800635746, "pct_who_spank": 14.1650146014, "pct_homeschooled": 97.9284455192, "ap_index": 8, "average_hours_percentile": 37.2549019608, "pct_with_smartphones_percentile": 13.7254901961, "pct_who_spank_percentile": 17.6470588235, "pct_homeschooled_percentile": 98.0392156863, "ap_index_percentile": 72.5490196078 }, { "State": "North Carolina", "average_hours": 7.2967947136, "pct_with_smartphones": 84.7730314394, "pct_who_spank": 10.0794598096, "pct_homeschooled": 57.1896999245, "ap_index": 7, "average_hours_percentile": 92.1568627451, "pct_with_smartphones_percentile": 82.3529411765, "pct_who_spank_percentile": 11.7647058824, "pct_homeschooled_percentile": 50.9803921569, "ap_index_percentile": 63.7254901961 }, { "State": "Virginia", "average_hours": 0.0001196027, "pct_with_smartphones": 91.6558553068, "pct_who_spank": 39.5453008762, "pct_homeschooled": 89.4000633783, "ap_index": 9, "average_hours_percentile": 3.9215686275, "pct_with_smartphones_percentile": 94.1176470588, "pct_who_spank_percentile": 45.0980392157, "pct_homeschooled_percentile": 90.1960784314, "ap_index_percentile": 81.3725490196 }, { "State": "West Virginia", "average_hours": 2.1523501037, "pct_with_smartphones": 62.3656773721, "pct_who_spank": 60.1436915516, "pct_homeschooled": 92.039088521, "ap_index": 3, "average_hours_percentile": 62.7450980392, "pct_with_smartphones_percentile": 58.8235294118, "pct_who_spank_percentile": 68.6274509804, "pct_homeschooled_percentile": 92.1568627451, "ap_index_percentile": 22.5490196078 }, { "State": "Louisiana", "average_hours": 0.2624839141, "pct_with_smartphones": 2.0631317708, "pct_who_spank": 36.7578640345, "pct_homeschooled": 40.9985249203, "ap_index": 2, "average_hours_percentile": 29.4117647059, "pct_with_smartphones_percentile": 3.9215686275, "pct_who_spank_percentile": 41.1764705882, "pct_homeschooled_percentile": 33.3333333333, "ap_index_percentile": 10.7843137255 }];
 
 
         // Creating selectElements that can map user selections to JavaScript
@@ -229,13 +260,24 @@ Unfortunately, for some reason, it didn't work on my end.-->
         // values. These are easy to generate beforehand within Python, though.
         let selected_color_option = color_selectElement.value;
         let metric_col = selected_metric; 
+        let metric_color_col = selected_metric; // This will be the same
+        // as metric_col when a linear color style is selected--but will get
+        // changed to selected_metric + '_percentile' when a percentile color
+        // option is selected. (Certain items, such as map legends, will require
+        // both of these values to be available--so we can't simply change 
+        // metric_col to selected_metric + '_percentile' when a percentile-style
+        // color scheme is requested.
         if (selected_color_option == 'percentile') {
-            metric_col = selected_metric + '_percentile'; }
+            metric_color_col = selected_metric + '_percentile'; }
 
         // console.log("metric_col", metric_col)
 
         let metric_max = df[metric_col].max()
         let metric_min = df[metric_col].min()
+        
+        let metric_color_col_max = df[metric_color_col].max() 
+        let metric_color_col_min = df[metric_color_col].min()
+
         // console.log("Max and min:", metric_max, metric_min)
 
 
@@ -266,6 +308,10 @@ Unfortunately, for some reason, it didn't work on my end.-->
             return d3_colorscale.interpolate(d3.interpolateRgb)(d)
         };
 
+
+
+        // Based on https://leafletjs.com/examples/choropleth/ but with some 
+        // major updates
         function styleFunc(feature) // Here, 'feature' is a particular region-level entry
         // within our GeoJSON file (e.g. all data for Mississippi). 
         // I wasn't able to add additional arguments to this function (due to Leaflet's
@@ -278,7 +324,7 @@ Unfortunately, for some reason, it didn't work on my end.-->
         {
             // Seeing what 'feature' looks like:
             // console.log(feature)
-            let region = feature.properties['State'] // e.g. 'Mississippi'
+            let region = feature['properties']['State'] // e.g. 'Mississippi'
             // // Seeing which metric the user wishes to display:
 
             // feature.properties.State would also work--but it's worth demonstrating 
@@ -286,7 +332,9 @@ Unfortunately, for some reason, it didn't work on my end.-->
 
             // Retrieving data:
             // Previously, I retrieved data using the following approach:
+
             //metric = feature.properties[metric_col];
+
             // This required, though, that the metric was already present
             // within the GeoJSON file--which will work fine in many cases,
             // but won't support dynamic data types that get updated based
@@ -312,19 +360,22 @@ Unfortunately, for some reason, it didn't work on my end.-->
             if (df.index.includes(region)) // Based on:
             // https://stackoverflow.com/questions/7378228/check-if-an-element-is-present-in-an-array
             {
-                let metric = df.at(region, metric_col)
+                let metric_value_for_color = df.at(region, metric_color_col)
                 // See https://danfo.jsdata.org/api-reference/dataframe/dataframe.at
                 
                 //console.log("Metric:", metric)
 
-                // Finding the interpolated value of this metric so that
+                // Finding the interpolated value of the metric we're using for
+                // our region color so that
                 // we can pass it to our color-rendering function:
                 // (This function will convert all metrics into a number between 0 and 1,
                 // thus allowing our color code to accommodate them.
 
-                let interpolated_metric = (metric - metric_min) / (metric_max - metric_min)
+                let interpolated_metric_for_color = (
+                    (metric_value_for_color - metric_color_col_min) 
+                / (metric_color_col_max - metric_color_col_min));
                 //console.log("Interpolated metric:", interpolated_metric)
-                fillColor_val = getColor(interpolated_metric)
+                fillColor_val = getColor(interpolated_metric_for_color)
                 //console.log(metric)
             }
             else 
@@ -352,6 +403,73 @@ Unfortunately, for some reason, it didn't work on my end.-->
         L.maplibreGL({
             style: '' // 'https://tiles.openfreemap.org/styles/bright',
         }).addTo(map);
+
+        // Adding code for our hover tooltips: (These tooltips will vary based on which
+        // variable is being selected.) I'll try to show both nominal and percentile-based
+        // data for each when available.
+
+    // Setting up a box that can show hover/tooltip data:
+    const info = L.control();
+
+    info.onAdd = function (map) {
+        this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+        this.update(); // See following function
+        return this._div;
+    };
+
+    // Creating a map that will store more readable, but still concise, values for each variable
+    // Based on https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/Map
+    const tooltip_title_map = new Map([
+        ["ap_index", "Index"],
+        ["pct_homeschooled", "% homeschooled"],
+        ["pct_who_spank", "% who spank"],
+        ["pct_with_smartphones", "% with smartphones"],
+        ["average_hours", "Average hours"],
+
+]);
+
+        // method that we will use to update the control based on feature properties passed
+        info.update = function (props) {
+            //console.log("Value of 'props':", props) // I'm thinking that this will refer to 
+            // a region-level properties entry, but I'd like to confirm
+            // this.
+            // We can use the current value of selected_metric here,
+            // but we should also make sure that we have the 
+            // percentile equivalent of this datapoint available, even
+            // if a linear color style is being requested.
+            let selected_metric_percentile = selected_metric + '_percentile';
+            // Initializing certain values for the tooltip as NaN or empty strings: (It's helpful
+            // to always have some value for them so that the code doesn't raise 'undefined' errors.)
+            // Note that props often won't be defined.
+            //console.log("Selected metric:", selected_metric) // Has a valid option
+            // even when the default initial metric is still visible
+            let tooltip_title = tooltip_title_map.get(selected_metric);
+            // Note that tooltip_title_map[selected_metric] doesn't work.
+            let tooltip_metric = NaN;
+            let tooltip_metric_percentile = NaN;
+            let tooltip_region = '';
+            if (props) // Props will be undefined if we're not hovering over a state--so
+            // we'll need to first check to see whether it exists.
+            {
+                tooltip_region = props['State'];
+                if (df.index.includes(tooltip_region)) // Based on:
+                // https://stackoverflow.com/questions/7378228/check-if-an-element-is-present-in-an-array
+                {
+                    tooltip_metric = Math.round(df.at(tooltip_region, selected_metric));
+                    tooltip_metric_percentile = Math.round(df.at(tooltip_region, selected_metric_percentile));
+                }
+            }
+
+            // Displaying either data for a particular region or a 'Hover over a state' message.
+            this._div.innerHTML = '<h4>' + tooltip_title + '</h4>' + (props ?
+                '<b>' + tooltip_region + ':</b> ' + tooltip_metric 
+                + '<br/>(Percentile: ' + tooltip_metric_percentile + ')'
+                : 'Hover over a state');
+        };
+
+        info.addTo(map);
+
+
         // Creating a layerGroup that will store our region colors:
         const layerGroup = new L.LayerGroup(); // Based on
         // https://stackoverflow.com/a/53155822/13097194
@@ -359,12 +477,152 @@ Unfortunately, for some reason, it didn't work on my end.-->
         // Specifying our region colors:
         // (These colors will get replaced as needed by updateMap().)
         let region_colors = L.geoJson(
-            agStateData, { style: styleFunc }); // styleFunc (or whatever you
+            agStateData, { style: styleFunc, onEachFeature: onEachFeature}); // styleFunc (or whatever you
             // wish to call it) shouldn't have any parentheses after it.
             // The function will utilize the global variables that we created
             // prior to calling L.geoJson().
+            // Somehow, the function is able to access the onEachFeature function,
+            // even though that function appears below this line of code.
+            // (I don't think I can move the onEachFeature function above this code,
+            // as it references functions that make use of the region_colors
+            // variable.)
         
         layerGroup.addLayer(region_colors);
+
+        // Now that we have a geoJson object (region_colors) defined, we can go ahead and add
+        // functions like resetHighlight that reference it.
+
+    // From https://leafletjs.com/examples/choropleth/
+    function highlightFeature(e) {
+    const layer = e.target;
+
+        layer.setStyle({
+            weight: 2,
+            color: '#FFFFFF',
+            dashArray: '',
+            fillOpacity: 1
+        });
+
+        layer.bringToFront();
+        info.update(layer['feature']['properties']); // This line is crucial
+        // for delivering information about the region to
+        // our info.update function.
+    }
+
+    function resetHighlight(e) {
+        region_colors.resetStyle(e.target);
+    }
+
+        function resetHighlight(e) {
+		region_colors.resetStyle(e.target);
+		info.update(); // Passing an empty argument here will reset
+        // the tooltip.
+	}
+        // This function is also part of the Leaflet choropleth tutorial,
+        // but I may end up removing it.
+        function zoomToFeature(e) {
+        map.fitBounds(e.target.getBounds());
+    }
+
+        function onEachFeature(feature, layer) {
+        layer.on({
+            mouseover: highlightFeature,
+            mouseout: resetHighlight,
+            click: zoomToFeature
+        });
+    }
+
+
+    // Initializing our legend: (This will need to get removed and replaced
+    // whenever the user-selected metric/percentile combination switches.)
+
+    legend = L.control({position: 'bottomright'}); // Can't be const because
+    // we'll need to periodically update this value
+
+    legend.onAdd = function (map) {
+        // Note: I realized that we can't simply pass metric values to grades
+        // when percentile-based colors are being used, since in that case,
+        // the relationship between metrics and their corresponding colors
+        // may not be linear. Therefore, I've updated this function to show
+        // metric color values rather than just metric values. However,
+        // if I did want to show both metric values and percentile values,
+        // I could retrieve percentiles that align with each metric selection;
+        // find their interpolated color; and then add these items to the map.
+        // (This should be doable with our current data table setup.)
+
+        let div = L.DomUtil.create('div', 'info legend');
+            // Using minimum and maximum values to specify different data points
+            // to display within the legend:
+            // (This will involve some interpolation.)
+
+            let grades = [
+            Math.round(metric_color_col_min), 
+            Math.round(metric_color_col_min + ((metric_color_col_max 
+            - metric_color_col_min) * 0.25)),
+            Math.round(metric_color_col_min + ((metric_color_col_max 
+            - metric_color_col_min) * 0.5)),
+            Math.round(metric_color_col_min + ((metric_color_col_max 
+            - metric_color_col_min) * 0.75)),
+            Math.round(metric_color_col_max)
+        ];
+
+            let labels = [];
+            // These can be hard-coded because they'll have the same values
+            // regardless of our metric selection.
+
+            let interpolated_color_points = [
+            0,
+            0.25,
+            0.5,
+            0.75,
+            1
+        ];
+
+        // // Loop through our density intervals and generate a label with a 
+        // // colored square for each interval
+        // for (let i = 0; i < grades.length; i++) {
+        //     console.log("Color",i,":",getColor(
+        //         interpolated_color_points[i]))
+        //     div.innerHTML += `<i style="background:${getColor(
+        //         interpolated_color_points[i])}"></i>${grades[i]}<br>`;
+        // }
+
+        // Clarifying that these values are percentiles:
+        if (selected_color_option == "percentile")
+        {
+            labels.push("(Percentiles)");}
+		for (let i = 0; i < grades.length; i++) {
+			labels.push(`<i style="background:${getColor(
+            interpolated_color_points[i])}"></i>${grades[i]}`);
+		}
+
+		div.innerHTML = labels.join('<br>');
+
+
+        return div;
+    };
+
+    legend.addTo(map);
+
+
+	// legend.onAdd = function (map) {
+
+	// 	const div = L.DomUtil.create('div', 'info legend');
+	// 	const grades = [0, 10, 20, 50, 100, 200, 500, 1000];
+	// 	const labels = [];
+	// 	let from, to;
+
+	// 	for (let i = 0; i < grades.length; i++) {
+	// 		from = grades[i];
+	// 		to = grades[i + 1];
+
+	// 		labels.push(`<i style="background:${getColor(
+    //         from + 1)}"></i> ${from}${to ? `&ndash;${to}` : '+'}`);
+	// 	}
+
+	// 	div.innerHTML = labels.join('<br>');
+	// 	return div;
+	// };
 
         //console.log("Script checkpoint")
 
@@ -389,15 +647,23 @@ Unfortunately, for some reason, it didn't work on my end.-->
             // of each original column that show that column's percentile
             // values. These are easy to generate beforehand within Python, though.
             selected_color_option = color_selectElement.value;
+            metric_color_col = selected_metric;
             if (selected_color_option == 'percentile') {
-                metric_col = selected_metric + '_percentile'; }
-            else {
-                metric_col = selected_metric; }
+                metric_color_col = selected_metric + '_percentile'; }
 
             //console.log("metric_col", metric_col)
 
+            // You could modify/evaluate the Danfo DataFrame object here (e.g. by
+            // pivoting it, filtering it, etc.), then saving the output
+            // to a new DataFrame that could get read by your style function.
+            // It wouldn't make sense to perform those steps within the style function,
+            // since it gets called for every region within the GeoJSON file.
+
             metric_max = df[metric_col].max()
             metric_min = df[metric_col].min()
+            
+            metric_color_col_max = df[metric_color_col].max() 
+            metric_color_col_min = df[metric_color_col].min()
             //console.log("Max and min:", metric_max, metric_min)
 
             //map.remove(); // Removing, then recreating the map prevents
@@ -405,17 +671,80 @@ Unfortunately, for some reason, it didn't work on my end.-->
             // is both inefficient and makes the background harder to read.
             // The code was based on https://stackoverflow.com/a/74513720/1309719 .
             layerGroup.removeLayer(region_colors);
-            // You could modify/evaluate the Danfo DataFrame object here (e.g. by
-            // pivoting it, filtering it, etc.), then saving the output
-            // to a new DataFrame that could get read by your style function.
-            // Alternatively, you could perform these steps
-            // within the style function--though that would be pretty
-            // inefficient, since that function gets called for every row
-            // of the DataFrame.
 
+            // I *think* an alternative approach here
+            // (based on the https://leafletjs.com/examples/geojson/ documentation)
+            // would be to loop through our GeoJSON file, then add different regions
+            // to the file one by one. (I'd just need to figure out how to iterate
+            // through the GeoJSon data--but I'm sure this would be doable.)
             region_colors = L.geoJson(agStateData,
-                { style: styleFunc });
+                { style: styleFunc, onEachFeature: onEachFeature
+                 });
             layerGroup.addLayer(region_colors);
+
+        //     // Recreating our legend so that it can accommodate our new variables:
+        //     map.remove(legend);
+        
+        // legend = L.control({position: 'bottomright'}); // Can't be const because
+        //     // we'll need to periodically update this value
+
+        div = L.DomUtil.create('div', 'info legend');
+            // Using minimum and maximum values to specify different data points
+            // to display within the legend:
+            // (This will involve some interpolation.)
+
+
+            console.log("metric_color_col:",metric_color_col);
+            console.log("metric_color_col_min:",metric_color_col_min);
+            console.log("metric_color_col_max:",metric_color_col_max);
+            let grades = [
+            Math.round(metric_color_col_min), 
+            Math.round(metric_color_col_min + ((metric_color_col_max 
+            - metric_color_col_min) * 0.25)),
+            Math.round(metric_color_col_min + ((metric_color_col_max 
+            - metric_color_col_min) * 0.5)),
+            Math.round(metric_color_col_min + ((metric_color_col_max 
+            - metric_color_col_min) * 0.75)),
+            Math.round(metric_color_col_max)
+        ];
+
+            let labels = [];
+
+            // The following items can be hard-coded because they'll have the same values
+            // regardless of our metric selection.
+            let interpolated_color_points = [
+            0,
+            0.25,
+            0.5,
+            0.75,
+            1
+        ];
+
+        // // Loop through our density intervals and generate a label with a 
+        // // colored square for each interval
+        // for (let i = 0; i < grades.length; i++) {
+        //     console.log("Color",i,":",getColor(
+        //         interpolated_color_points[i]))
+        //     div.innerHTML += `<i style="background:${getColor(
+        //         interpolated_color_points[i])}"></i>${grades[i]}<br>`;
+        // }
+
+        if (selected_color_option == "percentile")
+        {
+            labels.push("(Percentiles)");}
+        for (let i = 0; i < grades.length; i++) {
+            labels.push(`<i style="background:${getColor(
+            interpolated_color_points[i])}"></i>${grades[i]}`);
+        }
+
+        div.innerHTML = labels.join('<br>');
+        console.log("Inner HTML:",div.innerHTML)
+        // Updating our existing legend:
+        // The answer by TomazicM at
+        // https://gis.stackexchange.com/a/425363/195615
+        // proved very helpful here.
+        legend.getContainer().innerHTML = div.innerHTML;
+
         }
 
     </script>
